@@ -8,10 +8,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
 import com.sonyei888.coroutinestest.databinding.ActivityMainBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
@@ -20,17 +23,16 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
 
     private lateinit var binding: ActivityMainBinding
 
-    override val coroutineContext: CoroutineContext
-        get() = TODO("Not yet implemented")
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         setContentView(binding.root)
 
+        job = SupervisorJob()
+
         binding.submit.setOnClickListener {
-            GlobalScope.launch(Dispatchers.Main) {
+            lifecycleScope.launch {
                 val success = withContext(Dispatchers.IO) {
                     validateLogin(
                         binding.userName.text.toString(),
@@ -47,7 +49,10 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
         return user.isNotEmpty() && pass.isNotEmpty()
     }
 
-
+    override fun onDestroy() {
+        job.cancel()
+        super.onDestroy()
+    }
 }
 
 private fun Context.toast(message: String) {

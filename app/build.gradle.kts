@@ -50,6 +50,5 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
 
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
-
-
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.6")
 }
