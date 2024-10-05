@@ -15,11 +15,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
 
-class MainActivity : AppCompatActivity(), CoroutineScope {
+class MainActivity : AppCompatActivity(){
 
     private lateinit var binding: ActivityMainBinding
 
@@ -29,17 +30,22 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         setContentView(binding.root)
 
-        job = SupervisorJob()
-
         binding.submit.setOnClickListener {
             lifecycleScope.launch {
-                val success = withContext(Dispatchers.IO) {
+                val success = async(Dispatchers.IO) {
                     validateLogin(
                         binding.userName.text.toString(),
                         binding.Password.text.toString()
                     )
                 }
-                toast(if (success) "Success" else "Failure")
+
+                val success2 = async(Dispatchers.IO) {
+                    validateLogin2(
+                        binding.userName.text.toString(),
+                        binding.Password.text.toString()
+                    )
+                }
+                toast(if (success.await() && success2.await()) "Success" else "Failure")
             }
         }
     }
@@ -48,9 +54,12 @@ class MainActivity : AppCompatActivity(), CoroutineScope {
         Thread.sleep(2000)
         return user.isNotEmpty() && pass.isNotEmpty()
     }
+    private fun validateLogin2(user: String, pass: String): Boolean {
+        Thread.sleep(2000)
+        return user.isNotEmpty() && pass.isNotEmpty()
+    }
 
     override fun onDestroy() {
-        job.cancel()
         super.onDestroy()
     }
 }
