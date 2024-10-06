@@ -18,31 +18,34 @@ import org.mockito.kotlin.mock
 class MainViewModelTest {
     @get:Rule
     val rule = InstantTaskExecutorRule()
-    private val testDispatcher = TestCoroutineDispatcher()
+
+    @get: Rule
+    val coroutinesTestRule = CoroutinesTestRule()
+
     private lateinit var vm: MainViewModel
 
     @Before
-    fun setUp(){
-        Dispatchers.setMain(testDispatcher)
-        vm = MainViewModel(testDispatcher)
-    }
-    @After
-    fun tearDown(){
-        testDispatcher.cleanupTestCoroutines()
-        Dispatchers.resetMain()
+    fun setUp() {
+        vm = MainViewModel(coroutinesTestRule.testDispatcher)
     }
 
     @Test
-    fun test() {
-
+    fun `success if user and pass are not empty`() = coroutinesTestRule.testDispatcher.runBlockingTest {
         val observer = mock<Observer<Boolean>>()
-        testDispatcher.runBlockingTest {
-            vm.loginResult.observeForever(observer)
+        vm.loginResult.observeForever(observer)
 
-            vm.onSubmitClicked("user", "pass")
+        vm.onSubmitClicked("user", "pass")
 
-            verify(observer).onChanged(true)
-        }
+        verify(observer).onChanged(true)
+    }
 
+    @Test
+    fun `erro if user is empty`() = coroutinesTestRule.testDispatcher.runBlockingTest {
+        val observer = mock<Observer<Boolean>>()
+        vm.loginResult.observeForever(observer)
+
+        vm.onSubmitClicked("", "pass")
+
+        verify(observer).onChanged(false)
     }
 }
